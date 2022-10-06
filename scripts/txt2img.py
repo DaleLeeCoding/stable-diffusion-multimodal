@@ -21,6 +21,8 @@ from ldm.models.diffusion.plms import PLMSSampler
 from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
 from transformers import AutoFeatureExtractor
 
+from datetime import datetime
+import json
 
 # load safety model
 safety_model_id = "CompVis/stable-diffusion-safety-checker"
@@ -247,8 +249,10 @@ def main():
     else:
         sampler = DDIMSampler(model)
 
-    os.makedirs(opt.outdir, exist_ok=True)
+    now = datetime.now().strftime('%Y%m%d_%H%M%S')
+    opt.outdir = f"outputs/txt2img-samples/{now}"
     outpath = opt.outdir
+    os.makedirs(opt.outdir, exist_ok=True)
 
     print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
     wm = "StableDiffusionV1"
@@ -270,6 +274,9 @@ def main():
 
     sample_path = os.path.join(outpath, "samples")
     os.makedirs(sample_path, exist_ok=True)
+    with open(os.path.join(outpath, "args.txt"), "w") as f:
+        json.dump(opt.__dict__, f, indent=2)
+
     base_count = len(os.listdir(sample_path))
     grid_count = len(os.listdir(outpath)) - 1
 
